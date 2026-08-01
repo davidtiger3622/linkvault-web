@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useContext, useEffect, useState, ReactNode } from "react";
+import { createContext, useContext, useState, ReactNode } from "react";
 import { useRouter } from "next/navigation";
 import { apiFetch } from "@/lib/api";
 
@@ -14,16 +14,15 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-export function AuthProvider({ children }: { children: ReactNode }) {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [loading, setLoading] = useState(true);
-  const router = useRouter();
+function hasStoredToken(): boolean {
+  if (typeof window === "undefined") return false;
+  return !!window.localStorage.getItem("access_token");
+}
 
-  useEffect(() => {
-    const token = window.localStorage.getItem("access_token");
-    setIsAuthenticated(!!token);
-    setLoading(false);
-  }, []);
+export function AuthProvider({ children }: { children: ReactNode }) {
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(hasStoredToken);
+  const [loading] = useState(false);
+  const router = useRouter();
 
   const register = async (email: string, password: string) => {
     await apiFetch("/auth/register", {

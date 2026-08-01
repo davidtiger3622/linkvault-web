@@ -27,6 +27,7 @@ export default function DashboardPage() {
   }, [search, sort]);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- data fetch on mount, not a synchronous setState
     fetchBookmarks();
   }, [fetchBookmarks]);
 
