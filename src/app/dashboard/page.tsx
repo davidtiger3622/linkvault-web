@@ -9,6 +9,7 @@ import { listBookmarks, createBookmark, updateBookmark, deleteBookmark, Bookmark
 
 export default function DashboardPage() {
   const [bookmarks, setBookmarks] = useState<Bookmark[]>([]);
+  const [allBookmarks, setAllBookmarks] = useState<Bookmark[]>([]);
   const [search, setSearch] = useState("");
   const [sort, setSort] = useState<"date" | "alphabetical">("date");
   const [loading, setLoading] = useState(true);
@@ -19,6 +20,7 @@ export default function DashboardPage() {
     try {
       const data = await listBookmarks(search, sort);
       setBookmarks(data);
+      if (!search) setAllBookmarks(data);
     } finally {
       setLoading(false);
     }
@@ -28,31 +30,34 @@ export default function DashboardPage() {
     fetchBookmarks();
   }, [fetchBookmarks]);
 
+  useEffect(() => {
+    if (allBookmarks.length === 0) {
+      listBookmarks("", sort).then(setAllBookmarks);
+    }
+  }, [allBookmarks.length, sort]);
+
   const handleSave = async (name: string, url: string) => {
     await createBookmark(name, url);
     await fetchBookmarks();
+    setAllBookmarks([]);
   };
 
   const handleToggleFavorite = async (bookmark: Bookmark) => {
     await updateBookmark(bookmark.id, { is_favorite: !bookmark.is_favorite });
     await fetchBookmarks();
+    setAllBookmarks([]);
   };
 
   const handleDelete = async (id: number) => {
     await deleteBookmark(id);
     await fetchBookmarks();
+    setAllBookmarks([]);
   };
 
   return (
     <ProtectedRoute>
       <div className="min-h-screen flex flex-col">
-        <NavBar
-          search={search}
-          onSearchChange={setSearch}
-          sort={sort}
-          onSortChange={setSort}
-          onAddClick={() => setModalOpen(true)}
-        />
+        <NavBar search={search} onSearchChange={setSearch} sort={sort} onSortChange={setSort} onAddClick={() => setModalOpen(true)} allBookmarks={allBookmarks} />
         <main className="flex-1 p-6">
           {loading ? (
             <p className="text-gray-500">Loading bookmarks...</p>
